@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipcards game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+
+        .gameboard {
+            display: grid;
+            grid-template-columns: repeat(4, 250px);
+            gap: 20px;
+            max-width: 600px;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        .card {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 120px;
+            background-color: #f0f0f0;
+            font-size: 24px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .card.flipped {
+            background-color: #c0ffda;
+        }
+
+        .card.wrong {
+            background-color: #ffafab;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .gameboard {
+                grid-template-columns: repeat(5, 90px);
+                /* max-width: 300px; */
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .gameboard {
+                grid-template-columns: repeat(4, 70px);
+                gap: 10px;
+                /* max-width: 100px; */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h3>Flip Cards Memory Game</h3>
+    <div class="gameboard"></div>
+    <p>~by rajdeep</p>
+
+    <script>
+        // Function to generate pairs from randomly selected numbers
+        function generatePairs(count) {
+            let numbers = [];
+            let pairs = [];
+
+            // Generate unique random numbers
+            while (numbers.length < count) {
+                let randomNum = Math.floor(Math.random() * 100) + 1; // Generate random number between 1 and 100
+                if (!numbers.includes(randomNum)) {
+                    numbers.push(randomNum);
+                }
+            }
+
+            // Create pairs
+            numbers.forEach(num => {
+                pairs.push(num, num); // Push the number twice to create a pair
+            });
+
+            // Shuffle the pairs array
+            pairs.sort(() => Math.random() - 0.5);
+
+            return pairs;
+        }
+
+        // Usage example: generate pairs from 8 unique random numbers
+        const pairs = generatePairs(8);
+        let flippedCards = [];
+        let matchedCards = [];
+        let canFlip = true;
+
+        function createCard(num){
+            let card = document.createElement("div");
+            card.classList.add("card");
+            card.dataset.num = num;
+            card.textContent = '?';
+            card.addEventListener("click",flipCard);
+            return card;
+        }
+
+        function initgame(){
+            let gameboard = document.querySelector(".gameboard");
+            pairs.sort(() => Math.random() - 0.5);
+            pairs.forEach((num) => {
+                const card = createCard(num);
+                gameboard.appendChild(card);
+            })
+        }
+
+        function flipCard(){
+            if(!canFlip || flippedCards.length >=2 || this.classList.contains('flipped') || matchedCards.includes(this)){
+                return;   
+            }
+            this.classList.add('flipped');
+            this.textContent = this.dataset.num;
+            flippedCards.push(this)
+
+            if(flippedCards.length === 2){
+                checkMatch();
+            }
+        }
+
+        function checkMatch(){
+            canFlip = false;
+            setTimeout(() =>{
+                const [card1,card2] = flippedCards;
+                if(card1.dataset.num===card2.dataset.num){
+                    matchedCards.push(card1,card2);
+                    if(matchedCards.length===pairs.length){
+                        alert("Congratulations! You have won");
+                        resetGame();
+                    }
+                }
+                else{
+                    setTimeout(() => {
+                        card1.classList.remove("wrong");
+                        card2.classList.remove("wrong");
+                    },200);
+                    
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    card1.textContent = '?';
+                    card2.textContent = '?';
+                    card1.classList.add("wrong");
+                    card2.classList.add("wrong");
+                }
+                flippedCards = [];
+                canFlip = true;
+            },1000)
+        }
+
+        function resetGame(){
+            let gameboard = document.querySelector(".gameboard");
+            gameboard.innerHTML = '';
+            initgame();
+            flippedCards = [];
+            matchedCards = [];
+            canFlip = true;
+        }
+
+        initgame();
+    </script>
+</body>
+</html>
